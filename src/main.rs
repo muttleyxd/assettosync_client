@@ -84,8 +84,8 @@ fn get_assetto_path(existing_path: &String) -> Result<String, String> {
 use std::io;
 use std::fs::File;
 
-const LOGIN_LINK: &str = "http://localhost:8000/login";
-const MODS_JSON_LINK: &str = "http://localhost:8000/mods.json";
+const LOGIN_LINK: &str = "https://acsync.team8.pl/login";
+const MODS_JSON_LINK: &str = "https://acsync.team8.pl/mods.json";
 
 struct LoginData {
     login: String,
