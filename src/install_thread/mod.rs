@@ -96,7 +96,7 @@ impl InstallThreadTrait for InstallThread {
             let client = client.lock().unwrap().clone();
             let task_list = task_list.lock().unwrap().clone();
             for (index, task) in task_list.iter().enumerate() {
-                *status_clone.lock().unwrap() = format!("Downloading mod {} ({}/{})", task.filename, index, task_list.len());
+                *status_clone.lock().unwrap() = format!("Downloading mod {} ({}/{})", task.filename, index + 1, task_list.len());
                 let link = get_download_link(&task.checksum_md5);
                 let resp = client.get(link).send().await;
                 if let Err(error) = resp {
@@ -104,7 +104,7 @@ impl InstallThreadTrait for InstallThread {
                     continue;
                 }
 
-                *status_clone.lock().unwrap() = format!("Unpacking mod {} ({}/{})", task.filename, index, task_list.len());
+                *status_clone.lock().unwrap() = format!("Unpacking mod {} ({}/{})", task.filename, index + 1, task_list.len());
                 let archive_path = download_dir_path.join(&task.filename);
 
                 let resp = resp.unwrap();
@@ -120,7 +120,7 @@ impl InstallThreadTrait for InstallThread {
                     continue;
                 }
 
-                *status_clone.lock().unwrap() = format!("Installing mod {} ({}/{})", task.filename, index, task_list.len());
+                *status_clone.lock().unwrap() = format!("Installing mod {} ({}/{})", task.filename, index + 1, task_list.len());
                 let result = install_archive(archive_path.to_str().unwrap(), assetto_path.clone().as_str());
                 if let Err(error) = result {
                     error_list.lock().unwrap().push(format!("Mod {}, install error: {}", task.filename, error.to_string()));
