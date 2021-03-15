@@ -170,7 +170,7 @@ async fn get_mod_list(client: &Client) -> Result<Vec<JsonModTemplate>, reqwest::
 fn fill_mod_list(lv_mods_store: Arc<Mutex<gtk::ListStore>>, config: &ConfigObject, mod_list: &Vec<JsonModTemplate>) {
     for entry in mod_list.iter() {
         let enabled = config.is_mod_installed(&entry.checksum_md5);
-        let size_str = format!("{}M", entry.size_in_bytes / 1024 / 1024 / 1024);
+        let size_str = format!("{}M", entry.size_in_bytes / 1024 / 1024);
         lv_mods_store.lock().unwrap().insert_with_values(None, &[0, 1, 2], &[&enabled, &entry.filename, &size_str]);
     }
 }
@@ -281,7 +281,7 @@ async fn install_mods(client: Client, lv_mods_store: Arc<Mutex<gtk::ListStore>>,
     else {
         let mut summary = format!("{} mods installed successfully.\nErrors:\n", successfully_installed_mods.len());
         for error in error_list.iter() {
-            summary += error;
+            summary += format!("{}\n", error).as_str();
         }
         display_summary(&summary);
     }
