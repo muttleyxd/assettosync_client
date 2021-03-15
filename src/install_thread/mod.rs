@@ -44,7 +44,15 @@ fn install_archive(archive_path: &str, assetto_path: &str) -> compress_tools::Re
     {
         let target_path = Path::new(assetto_path).join(task.target_path);
         println!("{} -> {}", task.source_path, target_path.display().to_string());
-        let result = fs_extra::dir::move_dir(task.source_path, target_path, &CopyOptions::new());
+        let options = fs_extra::dir::CopyOptions {
+                overwrite: true,
+                skip_exist: false,
+                buffer_size: 65536,
+                copy_inside: false,
+                content_only: false,
+                depth: 0,
+        };
+        let result = fs_extra::dir::move_dir(task.source_path, target_path, &options);
         if let Err(error) = result {
             return Err(compress_tools::Error::from(error.to_string()));
         }
