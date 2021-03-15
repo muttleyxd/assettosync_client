@@ -296,9 +296,9 @@ async fn main() -> /*Result<(), String>*/ reqwest::Result<()> {
         return Ok(());
     }
 
-    let config_file = std::env::var("XDG_CONFIG_HOME")
-    .or_else(|_| std::env::var("HOME").map(|home|format!("{}/.config/assetto_sync_client.json", home)));
-    let mut config = config::ConfigObject::new(config_file.unwrap().as_ref());
+    let config_dir = dirs::config_dir().unwrap();
+    let config_file = config_dir.join("assetto_sync_client.json");
+    let mut config = config::ConfigObject::new(config_file.to_str().unwrap());
 
     let mut assetto_path = get_assetto_path(&config.config.assetto_path);
     while let Err(error) = &assetto_path {
