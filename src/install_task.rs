@@ -157,7 +157,6 @@ pub fn determine_install_tasks(entry_list: &Vec<FsEntry>) -> Result<Vec<InstallT
 
 #[cfg(test)]
 mod tests {
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
 
     fn vec_equal<T: PartialEq>(a: &Vec<T>, b: &Vec<T>) -> bool {

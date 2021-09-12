@@ -1,42 +1,7 @@
-/*use compress_tools::list_archive_files;
-use fs_extra::dir::CopyOptions;
-use gtk::prelude::*;
-use std::error;
-use std::fs::{self, DirEntry};
-use std::io;
-use std::{fs::File, path::Path};
-use tempdir::TempDir;
-use unrar::archive;
-use walkdir::WalkDir;
-
-mod common;
-mod install_task;
-
-fn install_archive(archive_path: &str, assetto_path: &str) -> compress_tools::Result<()> {
-    let temp_dir = TempDir::new("/tmp/assetto_sync_unpack")?;
-    let temporary_directory = temp_dir.path();
-    common::unpack_archive(Path::new(archive_path), temporary_directory)?;
-    for task in
-        install_task::determine_install_tasks(&common::recursive_ls(temporary_directory)).unwrap()
-    {
-        let target_path = Path::new(assetto_path).join(task.target_path);
-        println!("{} -> {}", task.source_path, target_path.display().to_string());
-        let result = fs_extra::dir::move_dir(task.source_path, target_path, &CopyOptions::new());
-        if let Err(error) = result {
-            println!("error installing mod: {}", error.to_string());
-        }
-    }
-    Ok(())
-}*/
-
-use glib::{glib_sys::gboolean, translate::FromGlibPtrNone};
 use install_thread::InstallThreadTrait;
 use reqwest::Client;
-// These require the `serde` dependency.
 use serde::{Deserialize, Serialize};
 use std::{
-    array,
-    convert::TryInto,
     path::Path,
     sync::{Arc, Mutex},
 };
@@ -88,9 +53,6 @@ fn get_assetto_path(existing_path: &String) -> Result<String, String> {
     }
     Err("No path provided".to_string())
 }
-
-use std::fs::File;
-use std::io;
 
 const LOGIN_LINK: &str = "https://acsync.team8.pl/login";
 const MODS_JSON_LINK: &str = "https://acsync.team8.pl/mods.json";
@@ -225,12 +187,6 @@ fn display_summary(summary: &String) {
     let label_summary: gtk::Label = builder.get_object("label_summary").unwrap();
     label_summary.set_text(summary);
 
-    /*let button_ok: gtk::Button = builder.get_object("button_ok").unwrap();
-    button_ok.connect_clicked(move |_| {
-        println!("hai");
-        gtk::main_quit();
-    });*/
-
     let dialog: gtk::Dialog = builder.get_object("dialog").unwrap();
     let _ = dialog.run();
     dialog.hide();
@@ -238,11 +194,6 @@ fn display_summary(summary: &String) {
 
 mod install_thread;
 
-/* Download file:
-    let mut resp = client.get("http://localhost:8000/mod_management/download?hash=ddf7cb7a8dd889f3de6b649624a02725").send().await?;
-    let mut out = File::create("out.rar").unwrap();
-    let result = io::copy(&mut resp.bytes().await.unwrap().as_ref(), &mut out);
-*/
 async fn install_mods(
     client: Client,
     lv_mods_store: Arc<Mutex<gtk::ListStore>>,
@@ -262,7 +213,7 @@ async fn install_mods(
     )));
     let assetto_path = config.config.assetto_path.clone();
     let install_thread_clone = install_thread.clone();
-    let mut task = tokio::spawn(async move {
+    let task = tokio::spawn(async move {
         let result: Option<JoinHandle<()>>;
         {
             let mut install_thread = install_thread_clone.lock().unwrap();
@@ -406,7 +357,7 @@ async fn main() -> reqwest::Result<()> {
     window_event_clone
         .lock()
         .unwrap()
-        .connect_delete_event(|wind, _| {
+        .connect_delete_event(|_, _| {
             gtk::main_quit();
             Inhibit(false)
         });
@@ -440,45 +391,5 @@ async fn main() -> reqwest::Result<()> {
     }
 
     install_mods(client, lv_mods_store.clone(), &mut config, &mod_list).await;
-
-    /* Get mods:
-        let mods: Vec<JsonModTemplate> = client.get("http://localhost:8000/mods.json").send().await?.json().await?;
-        println!("mods: {:?}", mods);
-    */
-    /* Download file:
-        let mut resp = client.get("http://localhost:8000/mod_management/download?hash=ddf7cb7a8dd889f3de6b649624a02725").send().await?;
-        let mut out = File::create("out.rar").unwrap();
-        let result = io::copy(&mut resp.bytes().await.unwrap().as_ref(), &mut out);
-    */
     Ok(())
 }
-/*let archive_path =
-    "/home/muttley/git/assettosync/work/mod94fullv12.7z".to_string();
-install_archive(archive_path.as_str(), "/tmp/ac_install")?;
-Ok(())*/
-
-/*
-    if gtk::init().is_err() {
-        println!("Failed to initialize GTK.");
-        return;
-    }
-    let glade_src = include_str!("main.glade");
-    let builder = gtk::Builder::new();
-    let result = builder.add_from_string(glade_src);
-    if let Err(error) = result {
-        panic!("failed to parse main.glade: {}", error);
-    }
-
-    let window: gtk::Window = builder.get_object("window1").unwrap();
-
-    let button: gtk::Button = builder.get_object("button_one").unwrap();
-
-    button.connect_clicked(move |_| {
-        println!("Clicked");
-    });
-
-    window.show_all();
-
-    gtk::main();
-
-}*/

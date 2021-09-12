@@ -1,17 +1,12 @@
 use std::{
     fs::File,
     io,
-    iter::successors,
     path::Path,
-    sync::{Arc, Mutex},
-    thread, time,
+    sync::{Arc, Mutex}
 };
 
-use async_trait::async_trait;
-use fs_extra::dir::CopyOptions;
 use reqwest::Client;
 use tempdir::TempDir;
-use tokio::runtime::Runtime;
 
 use crate::common;
 use crate::install_task;
@@ -31,7 +26,6 @@ pub struct InstallThread {
     current_status: Arc<Mutex<String>>,
     error_list: Arc<Mutex<Vec<String>>>,
     is_finished: Arc<Mutex<bool>>,
-    //pub runtime: Arc<Mutex<Runtime>>,
     successful_mods_md5: Arc<Mutex<Vec<String>>>,
     task_list: Arc<Mutex<Vec<JsonModTemplate>>>,
 }
@@ -78,7 +72,6 @@ impl InstallThreadTrait for InstallThread {
             current_status: Arc::new(Mutex::new("".to_string())),
             error_list: Arc::new(Mutex::new(vec![])),
             is_finished: Arc::new(Mutex::new(false)),
-            //runtime: Arc::new(Mutex::new(Runtime::new().unwrap())),
             successful_mods_md5: Arc::new(Mutex::new(vec![])),
             task_list: Arc::new(Mutex::new(task_list)),
         }
