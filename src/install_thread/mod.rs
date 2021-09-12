@@ -1,14 +1,21 @@
-use std::{fs::File, io, iter::successors, path::Path, sync::{Arc, Mutex}, thread, time};
+use std::{
+    fs::File,
+    io,
+    iter::successors,
+    path::Path,
+    sync::{Arc, Mutex},
+    thread, time,
+};
 
+use async_trait::async_trait;
 use fs_extra::dir::CopyOptions;
 use reqwest::Client;
-use async_trait::async_trait;
 use tempdir::TempDir;
 use tokio::runtime::Runtime;
 
 use crate::common;
-use crate::JsonModTemplate;
 use crate::install_task;
+use crate::JsonModTemplate;
 
 pub trait InstallThreadTrait {
     fn new(client: Client, task_list: Vec<JsonModTemplate>) -> Self;
@@ -43,14 +50,18 @@ fn install_archive(archive_path: &str, assetto_path: &str) -> compress_tools::Re
         install_task::determine_install_tasks(&common::recursive_ls(temporary_directory)).unwrap()
     {
         let target_path = Path::new(assetto_path).join(task.target_path);
-        println!("{} -> {}", task.source_path, target_path.display().to_string());
+        println!(
+            "{} -> {}",
+            task.source_path,
+            target_path.display().to_string()
+        );
         let options = fs_extra::dir::CopyOptions {
-                overwrite: true,
-                skip_exist: false,
-                buffer_size: 65536,
-                copy_inside: false,
-                content_only: false,
-                depth: 0,
+            overwrite: true,
+            skip_exist: false,
+            buffer_size: 65536,
+            copy_inside: false,
+            content_only: false,
+            depth: 0,
         };
         let result = fs_extra::dir::move_dir(task.source_path, target_path, &options);
         if let Err(error) = result {
@@ -86,7 +97,10 @@ impl InstallThreadTrait for InstallThread {
         tokio::task::spawn(async move {
             let download_dir = TempDir::new("assetto_sync_download");
             if let Err(error) = download_dir {
-                error_list.lock().unwrap().push(format!("Cannot create download temporary dir, error: {}", error.to_string()));
+                error_list.lock().unwrap().push(format!(
+                    "Cannot create download temporary dir, error: {}",
+                    error.to_string()
+                ));
                 return;
             }
             let download_dir = download_dir.unwrap();
@@ -96,37 +110,73 @@ impl InstallThreadTrait for InstallThread {
             let client = client.lock().unwrap().clone();
             let task_list = task_list.lock().unwrap().clone();
             for (index, task) in task_list.iter().enumerate() {
-                *status_clone.lock().unwrap() = format!("Downloading mod {} ({}/{})", task.filename, index + 1, task_list.len());
+                *status_clone.lock().unwrap() = format!(
+                    "Downloading mod {} ({}/{})",
+                    task.filename,
+                    index + 1,
+                    task_list.len()
+                );
                 let link = get_download_link(&task.checksum_md5);
                 let resp = client.get(link).send().await;
                 if let Err(error) = resp {
-                    error_list.lock().unwrap().push(format!("Mod {}, download error: {}", task.filename, error.to_string()));
+                    error_list.lock().unwrap().push(format!(
+                        "Mod {}, download error: {}",
+                        task.filename,
+                        error.to_string()
+                    ));
                     continue;
                 }
 
-                *status_clone.lock().unwrap() = format!("Unpacking mod {} ({}/{})", task.filename, index + 1, task_list.len());
+                *status_clone.lock().unwrap() = format!(
+                    "Unpacking mod {} ({}/{})",
+                    task.filename,
+                    index + 1,
+                    task_list.len()
+                );
                 let archive_path = download_dir_path.join(&task.filename);
 
                 let resp = resp.unwrap();
                 let mut out = File::create(&archive_path).unwrap();
                 let result = io::copy(&mut resp.bytes().await.unwrap().as_ref(), &mut out);
                 if let Err(error) = result {
-                    error_list.lock().unwrap().push(format!("Mod {}, unpack error: {}", task.filename, error.to_string()));
+                    error_list.lock().unwrap().push(format!(
+                        "Mod {}, unpack error: {}",
+                        task.filename,
+                        error.to_string()
+                    ));
                     continue;
                 }
                 let result = result.unwrap();
                 if result != task.size_in_bytes {
-                    error_list.lock().unwrap().push(format!("Mod {}, size mismatch (expected: {}, actual: {})", task.filename, task.size_in_bytes, result));
+                    error_list.lock().unwrap().push(format!(
+                        "Mod {}, size mismatch (expected: {}, actual: {})",
+                        task.filename, task.size_in_bytes, result
+                    ));
                     continue;
                 }
 
-                *status_clone.lock().unwrap() = format!("Installing mod {} ({}/{})", task.filename, index + 1, task_list.len());
-                let result = install_archive(archive_path.to_str().unwrap(), assetto_path.clone().as_str());
+                *status_clone.lock().unwrap() = format!(
+                    "Installing mod {} ({}/{})",
+                    task.filename,
+                    index + 1,
+                    task_list.len()
+                );
+                let result = install_archive(
+                    archive_path.to_str().unwrap(),
+                    assetto_path.clone().as_str(),
+                );
                 if let Err(error) = result {
-                    error_list.lock().unwrap().push(format!("Mod {}, install error: {}", task.filename, error.to_string()));
+                    error_list.lock().unwrap().push(format!(
+                        "Mod {}, install error: {}",
+                        task.filename,
+                        error.to_string()
+                    ));
                 }
-                
-                successful_mods.lock().unwrap().push(task.checksum_md5.clone());
+
+                successful_mods
+                    .lock()
+                    .unwrap()
+                    .push(task.checksum_md5.clone());
             }
             *status_clone.lock().unwrap() = format!("Finished");
             *is_finished.lock().unwrap() = true;
@@ -136,7 +186,7 @@ impl InstallThreadTrait for InstallThread {
     fn get_error_list(&self) -> Vec<String> {
         return self.error_list.lock().unwrap().clone();
     }
-    
+
     fn get_status(&self) -> String {
         return self.current_status.lock().unwrap().clone();
     }

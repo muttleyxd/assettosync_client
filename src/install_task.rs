@@ -13,7 +13,7 @@ pub struct InstallTask {
 fn dir_contains(entry_list: &Vec<FsEntry>, dir: &str, entries: &Vec<&str>) -> bool {
     entry_list.iter().any(|i| {
         for entry in entries {
-            let path = format!("{}/{}", dir, entry);
+            let path = format!("{}{}{}", dir, std::path::MAIN_SEPARATOR, entry);
             if WildMatch::new(path.as_ref()).is_match(i.path.as_ref()) {
                 return true;
             }
@@ -97,11 +97,11 @@ pub fn determine_install_tasks(entry_list: &Vec<FsEntry>) -> Result<Vec<InstallT
         .collect();
     let extension_dirs: Vec<&FsEntry> = entry_list
         .iter()
-                .filter(|&p| {
-                        let is_extension_dir =
-                            !p.is_file && Path::new(&p.path).file_name().unwrap() == "extension";
-                        if !is_extension_dir {
-                            return false;
+        .filter(|&p| {
+            let is_extension_dir =
+                !p.is_file && Path::new(&p.path).file_name().unwrap() == "extension";
+            if !is_extension_dir {
+                return false;
             }
             !extension_dir_is_mod_dir(entry_list, p)
         })

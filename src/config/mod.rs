@@ -4,7 +4,6 @@ use std::path::Path;
 
 use serde::{Deserialize, Serialize};
 
-
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct Config {
     pub assetto_path: String,
@@ -31,7 +30,7 @@ fn read_config(path: &str) -> String {
     let file = std::fs::read_to_string(path);
     match file {
         Ok(file) => file,
-        Err(_) => serde_json::to_string(&Config::default()).unwrap()
+        Err(_) => serde_json::to_string(&Config::default()).unwrap(),
     }
 }
 
