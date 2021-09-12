@@ -30,7 +30,7 @@ pub struct InstallThread {
     task_list: Arc<Mutex<Vec<JsonModTemplate>>>,
 }
 
-const MOD_DOWNLOAD_LINK: &str = "https://acsync.team8.pl/mod_management/download?hash=";
+const MOD_DOWNLOAD_LINK: &str = "http://127.0.0.1:8080/mod_management/download?hash=";  // todo: move this to config.json or some kind of build env var
 
 fn get_download_link(md5_hash: &String) -> String {
     format!("{}{}", MOD_DOWNLOAD_LINK, md5_hash)

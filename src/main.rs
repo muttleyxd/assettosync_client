@@ -54,8 +54,8 @@ fn get_assetto_path(existing_path: &String) -> Result<String, String> {
     Err("No path provided".to_string())
 }
 
-const LOGIN_LINK: &str = "https://acsync.team8.pl/login";
-const MODS_JSON_LINK: &str = "https://acsync.team8.pl/mods.json";
+const LOGIN_LINK: &str = "http://127.0.0.1:8080/login"; // todo: move this to config.json or some kind of build env var
+const MODS_JSON_LINK: &str = "http://127.0.0.1:8080/mods.json";
 
 struct LoginData {
     login: String,
